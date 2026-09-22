@@ -1,0 +1,37 @@
+# Hostinger Apache Configuration for Video Streaming & SPA
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Do not rewrite actual files or directories
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Allow direct access to uploads
+  RewriteRule ^uploads/(.*)$ uploads/$1 [L]
+
+  # Direct access to PHP APIs if present
+  RewriteRule ^api/upload$ api/upload.php [L]
+  RewriteRule ^api/cards$ api/cards.php [L]
+
+  # Fallback all other routes to SPA index.html
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# Streaming headers & CORS for Videos
+<IfModule mod_headers.c>
+  Header set Access-Control-Allow-Origin "*"
+  Header set Access-Control-Allow-Methods "GET, POST, PUT, OPTIONS, DELETE"
+  Header set Access-Control-Allow-Headers "Content-Type, Range"
+  Header set Access-Control-Expose-Headers "Content-Range, Content-Length, Accept-Ranges"
+  Header set Accept-Ranges "bytes"
+</IfModule>
+
+# Proper MIME types for video files
+<IfModule mod_mime.c>
+  AddType video/mp4 .mp4
+  AddType video/webm .webm
+  AddType video/ogg .ogv
+  AddType video/quicktime .mov
+</IfModule>

@@ -1,0 +1,6 @@
+{
+  "name": "Baralho Iluminado - Revelador de Vídeos",
+  "description": "Cartas de baralho interativas com efeito de iluminação de abajur que revelam vídeos personalizados.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
