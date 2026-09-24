@@ -16,34 +16,34 @@ interface CardEditorModalProps {
 
 const SAMPLE_VIDEOS = [
   {
-    name: 'Fogo & Chamas',
-    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-    subtitle: 'Chamas crepitantes',
+    name: 'Natureza & Flor',
+    url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+    subtitle: 'Flora mágica em alta definição',
   },
   {
     name: 'Oceano e Ondas',
-    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    subtitle: 'Maré cinematográfica',
+    url: 'https://vjs.zencdn.net/v/oceans.mp4',
+    subtitle: 'Maré cinematográfica profunda',
   },
   {
-    name: 'Cosmos & Estrelas',
-    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-    subtitle: 'Navegação pelas estrelas',
+    name: 'Sintel - Ficção Fantástica',
+    url: 'https://media.w3.org/2010/05/sintel/trailer.mp4',
+    subtitle: 'Aventura cinematográfica',
   },
   {
-    name: 'Horizonte Aberto',
-    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
-    subtitle: 'Ficção e tecnologia',
+    name: 'Horizonte & Natureza',
+    url: 'https://media.w3.org/2010/05/bunny/movie.mp4',
+    subtitle: 'Animação clássica',
   },
   {
-    name: 'Fuga Noturna',
-    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-    subtitle: 'Estrada ao crepúsculo',
+    name: 'Luzes da Noite',
+    url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4',
+    subtitle: 'Cores e movimento noturno',
   },
   {
-    name: 'Velocidade e Ação',
-    url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
-    subtitle: 'Adrenalina pura',
+    name: 'Amostra Dinâmica',
+    url: 'https://samplelib.com/mp4/sample-5s.mp4',
+    subtitle: 'Luz e ritmo visual',
   },
 ];
 

@@ -17,23 +17,51 @@ import { Sparkles, Lightbulb, Film, HelpCircle, Plus, Play, Square, Database, Se
 const SESSION_STORAGE_KEY = 'baralho_lit_cards_state';
 const LOCAL_STORAGE_CARDS_KEY = 'baralho_custom_deck_cards';
 
+function sanitizeCardVideos(loadedCards: PlayingCardData[]): PlayingCardData[] {
+  let modified = false;
+  const sanitized = loadedCards.map((card, idx) => {
+    // If card has the obsolete 403 Google Cloud sample URL or missing videoUrl, migrate to reliable working URL
+    if (
+      !card.videoUrl ||
+      card.videoUrl.includes('commondatastorage.googleapis.com/gtv-videos-bucket/sample')
+    ) {
+      modified = true;
+      const defaultReplacement = INITIAL_CARDS[idx % INITIAL_CARDS.length];
+      return {
+        ...card,
+        videoUrl: defaultReplacement.videoUrl,
+        videoType: 'direct' as const,
+      };
+    }
+    return card;
+  });
+
+  if (modified) {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_CARDS_KEY, JSON.stringify(sanitized));
+    } catch {}
+  }
+  return sanitized;
+}
+
 export default function App() {
   // Load custom cards or default cards
   const [cards, setCards] = useState<PlayingCardData[]>(() => {
     try {
       const savedCards = localStorage.getItem(LOCAL_STORAGE_CARDS_KEY);
       const parsedCards: PlayingCardData[] = savedCards ? JSON.parse(savedCards) : INITIAL_CARDS;
+      const cleanCards = sanitizeCardVideos(parsedCards);
 
       // Restore lit states from session storage ("até eu fechar o programa")
       const sessionLit = sessionStorage.getItem(SESSION_STORAGE_KEY);
       if (sessionLit) {
         const litIds: string[] = JSON.parse(sessionLit);
-        return parsedCards.map((c) => ({
+        return cleanCards.map((c) => ({
           ...c,
           isLit: litIds.includes(c.id),
         }));
       }
-      return parsedCards;
+      return cleanCards;
     } catch {
       return INITIAL_CARDS;
     }
@@ -48,10 +76,11 @@ export default function App() {
     async function loadServerCards() {
       const serverCards = await fetchCardsFromServer();
       if (serverCards && serverCards.length > 0) {
+        const cleanServerCards = sanitizeCardVideos(serverCards);
         // Preserve session lit status
         const sessionLit = sessionStorage.getItem(SESSION_STORAGE_KEY);
         const litIds: string[] = sessionLit ? JSON.parse(sessionLit) : [];
-        const combined = serverCards.map((sc) => ({
+        const combined = cleanServerCards.map((sc) => ({
           ...sc,
           isLit: litIds.includes(sc.id),
         }));

@@ -18,6 +18,71 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Storage path for uploads and database
+const uploadsDir = path.resolve(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  try {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  } catch {}
+}
+
+const cardsDbPath = path.resolve(__dirname, 'data', 'cards.json');
+const dataDir = path.resolve(__dirname, 'data');
+if (!fs.existsSync(dataDir)) {
+  try {
+    fs.mkdirSync(dataDir, { recursive: true });
+  } catch {}
+}
+
+// Cards API
+app.get('/api/cards', (req, res) => {
+  try {
+    if (fs.existsSync(cardsDbPath)) {
+      const data = JSON.parse(fs.readFileSync(cardsDbPath, 'utf8'));
+      return res.json({ cards: data });
+    }
+    return res.json({ cards: null });
+  } catch {
+    return res.json({ cards: null });
+  }
+});
+
+app.put('/api/cards', (req, res) => {
+  try {
+    const { cards } = req.body || {};
+    if (Array.isArray(cards)) {
+      fs.writeFileSync(cardsDbPath, JSON.stringify(cards, null, 2), 'utf8');
+      return res.json({ success: true, count: cards.length });
+    }
+    return res.status(400).json({ success: false, error: 'Invalid cards array' });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Uploads listing API
+app.get('/api/uploads', (req, res) => {
+  try {
+    if (!fs.existsSync(uploadsDir)) {
+      return res.json({ files: [] });
+    }
+    const files = fs.readdirSync(uploadsDir).filter(f => !f.startsWith('.'));
+    const details = files.map(file => {
+      const stat = fs.statSync(path.join(uploadsDir, file));
+      return {
+        filename: file,
+        url: `/uploads/${file}`,
+        size: stat.size,
+        createdAt: stat.birthtime.toISOString(),
+        modifiedAt: stat.mtime.toISOString(),
+      };
+    });
+    return res.json({ files: details });
+  } catch {
+    return res.json({ files: [] });
+  }
+});
+
 // Paths to dist and public
 const distPath = path.resolve(__dirname, 'dist');
 const publicPath = path.resolve(__dirname, 'public');

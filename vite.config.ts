@@ -3,9 +3,35 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 import {defineConfig} from 'vite';
 
+function devApiPlugin() {
+  return {
+    name: 'dev-api-middleware',
+    configureServer(server: any) {
+      server.middlewares.use((req: any, res: any, next: any) => {
+        if (req.url === '/api/uploads') {
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ files: [] }));
+          return;
+        }
+        if (req.url === '/api/cards') {
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ cards: null }));
+          return;
+        }
+        if (req.url === '/api/health') {
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ status: 'ok', server: 'vite-dev', totalVideosStored: 0 }));
+          return;
+        }
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [react(), tailwindcss(), devApiPlugin()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

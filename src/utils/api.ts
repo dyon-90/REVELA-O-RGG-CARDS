@@ -28,9 +28,16 @@ export async function fetchCardsFromServer(): Promise<PlayingCardData[] | null> 
       // Try PHP fallback if on standard Hostinger PHP hosting
       const phpRes = await fetch('/api/cards.php');
       if (phpRes.ok) {
-        const phpData = await phpRes.json();
-        if (phpData && Array.isArray(phpData.cards)) return phpData.cards;
+        const phpType = phpRes.headers.get('content-type') || '';
+        if (phpType.includes('application/json')) {
+          const phpData = await phpRes.json();
+          if (phpData && Array.isArray(phpData.cards)) return phpData.cards;
+        }
       }
+      return null;
+    }
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
       return null;
     }
     const data = await res.json();
@@ -182,10 +189,15 @@ export async function fetchServerStoredVideos(): Promise<StoredServerVideo[]> {
   try {
     const res = await fetch('/api/uploads');
     if (!res.ok) return [];
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      // Received HTML or non-JSON fallback (e.g., in dev server or missing route)
+      return [];
+    }
     const data = await res.json();
     return Array.isArray(data.files) ? data.files : [];
   } catch (err) {
-    console.error('Failed to fetch uploaded videos from server:', err);
+    console.warn('Backend uploads not available or returned non-JSON:', err);
     return [];
   }
 }
@@ -195,6 +207,9 @@ export async function deleteServerStoredVideo(filename: string): Promise<boolean
     const res = await fetch(`/api/uploads/${encodeURIComponent(filename)}`, {
       method: 'DELETE',
     });
+    if (!res.ok) return false;
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) return false;
     const data = await res.json();
     return Boolean(data.success);
   } catch {
@@ -206,6 +221,8 @@ export async function checkServerHealth(): Promise<ServerHealthInfo | null> {
   try {
     const res = await fetch('/api/health');
     if (!res.ok) return null;
+    const contentType = res.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) return null;
     return await res.json();
   } catch {
     return null;

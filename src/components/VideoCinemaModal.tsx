@@ -21,6 +21,11 @@ export const VideoCinemaModal: React.FC<VideoCinemaModalProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(true);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
+  const [videoError, setVideoError] = useState(false);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const [showCenterPlay, setShowCenterPlay] = useState(false);
+  const [mutedAutoplayActive, setMutedAutoplayActive] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const modalWrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -28,7 +33,10 @@ export const VideoCinemaModal: React.FC<VideoCinemaModalProps> = ({
   useEffect(() => {
     if (isOpen && card) {
       setIsFullscreen(true);
-      setIsPlaying(true);
+      setVideoError(false);
+      setIsVideoLoading(true);
+      setShowCenterPlay(false);
+      setMutedAutoplayActive(false);
 
       // Attempt native fullscreen API on open
       const attemptFullscreen = async () => {
@@ -51,6 +59,50 @@ export const VideoCinemaModal: React.FC<VideoCinemaModalProps> = ({
       return () => clearTimeout(timer);
     }
   }, [isOpen, card]);
+
+  // Guaranteed autoplay attempt with browser policy fallback
+  useEffect(() => {
+    if (!isOpen || !card) return;
+
+    const startPlayback = () => {
+      const video = videoRef.current;
+      if (!video) return;
+
+      video.currentTime = 0;
+      const playPromise = video.play();
+
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            setIsPlaying(true);
+            setShowCenterPlay(false);
+            setIsVideoLoading(false);
+          })
+          .catch(() => {
+            // Browser blocked unmuted autoplay - fallback to muted autoplay
+            video.muted = true;
+            setIsMuted(true);
+            setMutedAutoplayActive(true);
+
+            video.play()
+              .then(() => {
+                setIsPlaying(true);
+                setShowCenterPlay(false);
+                setIsVideoLoading(false);
+              })
+              .catch((err) => {
+                console.warn('Video requires manual click to play:', err);
+                setIsPlaying(false);
+                setShowCenterPlay(true);
+                setIsVideoLoading(false);
+              });
+          });
+      }
+    };
+
+    const timer = setTimeout(startPlayback, 80);
+    return () => clearTimeout(timer);
+  }, [isOpen, card?.id, card?.videoUrl]);
 
   // Synchronize state when browser enters or leaves native fullscreen
   useEffect(() => {
@@ -130,6 +182,39 @@ export const VideoCinemaModal: React.FC<VideoCinemaModalProps> = ({
       const next = !videoRef.current.muted;
       videoRef.current.muted = next;
       setIsMuted(next);
+      if (!next) {
+        setMutedAutoplayActive(false);
+      }
+    }
+  };
+
+  const handleCenterPlayClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      setIsMuted(false);
+      setMutedAutoplayActive(false);
+      videoRef.current.play().then(() => {
+        setIsPlaying(true);
+        setShowCenterPlay(false);
+      }).catch(() => {
+        if (videoRef.current) {
+          videoRef.current.muted = true;
+          setIsMuted(true);
+          videoRef.current.play();
+          setIsPlaying(true);
+          setShowCenterPlay(false);
+        }
+      });
+    }
+  };
+
+  const handleUnmuteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      setIsMuted(false);
+      setMutedAutoplayActive(false);
     }
   };
 
@@ -251,11 +336,78 @@ export const VideoCinemaModal: React.FC<VideoCinemaModalProps> = ({
                 autoPlay
                 playsInline
                 muted={isMuted}
-                onPlay={() => setIsPlaying(true)}
+                onClick={togglePlayPause}
+                onPlay={() => {
+                  setIsPlaying(true);
+                  setShowCenterPlay(false);
+                  setIsVideoLoading(false);
+                }}
                 onPause={() => setIsPlaying(false)}
-                onEnded={() => setIsPlaying(false)}
-                className="w-full h-full object-contain"
+                onEnded={() => {
+                  setIsPlaying(false);
+                  setShowCenterPlay(true);
+                }}
+                onLoadedData={() => setIsVideoLoading(false)}
+                onError={() => {
+                  setVideoError(true);
+                  setIsVideoLoading(false);
+                }}
+                className="w-full h-full object-contain cursor-pointer"
               />
+
+              {/* Large center play button when paused or awaiting manual click */}
+              {(!isPlaying || showCenterPlay) && !videoError && !isVideoLoading && (
+                <button
+                  type="button"
+                  onClick={handleCenterPlayClick}
+                  className="absolute inset-0 m-auto w-20 h-20 rounded-full bg-black/60 hover:bg-black/80 border-2 border-amber-400 text-amber-300 flex items-center justify-center hover:scale-110 transition-all shadow-2xl z-30"
+                  aria-label="Reproduzir Vídeo"
+                >
+                  <Play className="w-10 h-10 fill-current translate-x-1" />
+                </button>
+              )}
+
+              {/* Muted autoplay warning banner */}
+              {mutedAutoplayActive && isPlaying && (
+                <button
+                  type="button"
+                  onClick={handleUnmuteClick}
+                  className="absolute top-16 left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-full bg-amber-500/90 hover:bg-amber-400 text-neutral-950 font-bold text-xs flex items-center gap-2 shadow-2xl animate-pulse cursor-pointer border border-amber-300"
+                >
+                  <Volume2 className="w-4 h-4" />
+                  <span>Áudio silenciado automaticamente pelo navegador. Clique para ligar o som!</span>
+                </button>
+              )}
+
+              {/* Loading State */}
+              {isVideoLoading && !videoError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-amber-300 bg-black/50 z-20 pointer-events-none">
+                  <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-xs">Carregando vídeo...</span>
+                </div>
+              )}
+
+              {/* Error State */}
+              {videoError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-amber-200 bg-black/90 z-30 p-6 text-center">
+                  <p className="text-sm text-rose-400 font-semibold">Não foi possível carregar o vídeo.</p>
+                  <p className="text-xs text-neutral-400 max-w-sm">Verifique sua conexão ou escolha outro vídeo pelo editor da carta.</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVideoError(false);
+                      setIsVideoLoading(true);
+                      if (videoRef.current) {
+                        videoRef.current.load();
+                        videoRef.current.play().catch(() => {});
+                      }
+                    }}
+                    className="px-4 py-2 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs hover:bg-amber-500/30 transition-colors"
+                  >
+                    Tentar Novamente
+                  </button>
+                </div>
+              )}
 
               {/* Floating playback overlay controls - High transparency so video is always visible */}
               <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-auto bg-black/10 hover:bg-black/25 transition-all duration-300 px-3.5 py-1.5 rounded-xl border border-white/10 shadow-sm z-20">

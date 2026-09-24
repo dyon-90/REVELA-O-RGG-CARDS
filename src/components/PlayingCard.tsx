@@ -40,22 +40,26 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
 
   // Auto-play video when card becomes lit
   useEffect(() => {
+    setVideoError(false);
     if (card.isLit && videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // Autoplay policy might require mute
-        if (videoRef.current) {
-          videoRef.current.muted = true;
+      const video = videoRef.current;
+      video.play().catch(() => {
+        // Autoplay policy requires mute in modern browsers
+        if (video) {
+          video.muted = true;
           setIsMuted(true);
-          videoRef.current.play().catch(() => {});
+          video.play().catch(() => {
+            setIsPlaying(false);
+          });
         }
       });
     }
-  }, [card.isLit]);
+  }, [card.isLit, card.videoUrl]);
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Prevent triggering when clicking control buttons inside lit card
+    // Prevent triggering when clicking interactive control buttons
     const target = e.target as HTMLElement;
-    if (target.closest('button') || target.closest('iframe') || target.closest('video')) {
+    if (target.closest('button') || target.closest('iframe')) {
       return;
     }
 
@@ -65,6 +69,14 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
         soundEngine.playLampSwitchSound(true);
       }, 180);
       onCardClick(card.id, { x: e.clientX, y: e.clientY });
+    } else {
+      // If card is already lit and clicked on the video area, toggle play/pause
+      if (target.closest('video') || target.closest('.group\\/video')) {
+        togglePlayPause(e);
+      } else {
+        // Clicking anywhere else on the lit card opens Cinema mode
+        onOpenCinema(card);
+      }
     }
   };
 
@@ -281,13 +293,26 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({
                   playsInline
                   autoPlay
                   muted={isMuted}
+                  onClick={togglePlayPause}
                   onPlay={() => setIsPlaying(true)}
                   onPause={() => setIsPlaying(false)}
                   onEnded={() => setIsPlaying(false)}
                   onLoadedData={() => setIsVideoLoaded(true)}
                   onError={() => setVideoError(true)}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover cursor-pointer"
                 />
+
+                {/* Center Play Button Overlay when paused */}
+                {!isPlaying && isVideoLoaded && !videoError && (
+                  <button
+                    type="button"
+                    onClick={togglePlayPause}
+                    aria-label="Reproduzir Vídeo"
+                    className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-black/60 border border-amber-400/80 text-amber-300 flex items-center justify-center hover:scale-110 hover:bg-black/80 transition-all shadow-lg z-20"
+                  >
+                    <Play className="w-6 h-6 fill-current translate-x-0.5" />
+                  </button>
+                )}
 
                 {/* Video controls overlay inside the card */}
                 <div className="absolute bottom-2 right-2 flex items-center gap-1.5 opacity-90 group-hover/video:opacity-100 transition-opacity z-20">

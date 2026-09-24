@@ -27,7 +27,7 @@ const DEFAULT_CARDS = [
     suit: 'spades',
     title: 'Ás de Espadas',
     subtitle: 'Chamas da Noite',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
     videoType: 'direct',
     isLit: false,
     accentColor: '#f59e0b',
@@ -39,7 +39,7 @@ const DEFAULT_CARDS = [
     suit: 'hearts',
     title: 'Rei de Copas',
     subtitle: 'Oceano e Vento',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    videoUrl: 'https://vjs.zencdn.net/v/oceans.mp4',
     videoType: 'direct',
     isLit: false,
     accentColor: '#ef4444',
@@ -51,7 +51,7 @@ const DEFAULT_CARDS = [
     suit: 'diamonds',
     title: 'Dama de Ouros',
     subtitle: 'Viagem Cinematográfica',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+    videoUrl: 'https://media.w3.org/2010/05/sintel/trailer.mp4',
     videoType: 'direct',
     isLit: false,
     accentColor: '#eab308',
@@ -63,7 +63,7 @@ const DEFAULT_CARDS = [
     suit: 'clubs',
     title: 'Valete de Paus',
     subtitle: 'Horizonte Aberto',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+    videoUrl: 'https://media.w3.org/2010/05/bunny/movie.mp4',
     videoType: 'direct',
     isLit: false,
     accentColor: '#10b981',
@@ -74,8 +74,8 @@ const DEFAULT_CARDS = [
     rank: '10',
     suit: 'hearts',
     title: 'Dez de Copas',
-    subtitle: 'Lareira Aconchegante',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    subtitle: 'Luzes da Meia-Noite',
+    videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/friday.mp4',
     videoType: 'direct',
     isLit: false,
     accentColor: '#f97316',
@@ -86,8 +86,8 @@ const DEFAULT_CARDS = [
     rank: '★',
     suit: 'special',
     title: 'Coringa do Baralho',
-    subtitle: 'Celeridade & Destino',
-    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
+    subtitle: 'Luz e Movimento',
+    videoUrl: 'https://samplelib.com/mp4/sample-5s.mp4',
     videoType: 'direct',
     isLit: false,
     accentColor: '#8b5cf6',
@@ -161,10 +161,10 @@ app.use(
 
 // Setup multer storage for persistent video uploads
 const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
+  destination: (_req: any, _file: any, cb: any) => {
     cb(null, UPLOADS_DIR);
   },
-  filename: (_req, file, cb) => {
+  filename: (_req: any, file: any, cb: any) => {
     const ext = path.extname(file.originalname) || '.mp4';
     const cleanName = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9_-]/g, '_').toLowerCase();
     const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e5)}`;
@@ -177,7 +177,7 @@ const upload = multer({
   limits: {
     fileSize: 300 * 1024 * 1024, // 300MB max per video file
   },
-  fileFilter: (_req, file, cb) => {
+  fileFilter: (_req: any, file: any, cb: any) => {
     const allowedMimes = ['video/mp4', 'video/webm', 'video/quicktime', 'video/ogg', 'video/x-matroska'];
     const ext = path.extname(file.originalname).toLowerCase();
     const allowedExts = ['.mp4', '.webm', '.mov', '.ogg', '.ogv', '.mkv'];
@@ -214,7 +214,7 @@ app.put('/api/cards', (req: Request, res: Response) => {
 
 // 3. Upload video to local server storage
 app.post('/api/upload-video', (req: Request, res: Response) => {
-  upload.single('video')(req, res, (err) => {
+  upload.single('video')(req as any, res as any, (err: any) => {
     if (err) {
       console.error('Upload error:', err);
       return res.status(400).json({
@@ -223,12 +223,13 @@ app.post('/api/upload-video', (req: Request, res: Response) => {
       });
     }
 
-    if (!req.file) {
+    const uploadedFile = (req as any).file;
+    if (!uploadedFile) {
       return res.status(400).json({ success: false, error: 'Nenhum arquivo de vídeo foi enviado.' });
     }
 
     // The public URL accessible by clients
-    const videoUrl = `/uploads/${req.file.filename}`;
+    const videoUrl = `/uploads/${uploadedFile.filename}`;
 
     // If cardId is provided in form-data, link it immediately in cards_database.json
     const cardId = req.body.cardId;
@@ -246,10 +247,10 @@ app.post('/api/upload-video', (req: Request, res: Response) => {
     return res.json({
       success: true,
       videoUrl,
-      filename: req.file.filename,
-      originalName: req.file.originalname,
-      size: req.file.size,
-      mimetype: req.file.mimetype,
+      filename: uploadedFile.filename,
+      originalName: uploadedFile.originalname,
+      size: uploadedFile.size,
+      mimetype: uploadedFile.mimetype,
       message: 'Vídeo gravado com sucesso no servidor.',
     });
   });
