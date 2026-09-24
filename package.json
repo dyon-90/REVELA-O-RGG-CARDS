@@ -1,15 +1,19 @@
 {
   "name": "react-example",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build",
     "start": "NODE_ENV=production tsx server.ts",
     "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "clean": "rm -rf dist server.js dist_electron",
+    "lint": "tsc --noEmit",
+    "electron:dev": "electron electron/main.cjs",
+    "electron:build": "npm run build && electron-builder --win portable nsis",
+    "make:exe": "npm run build && electron-builder --win portable"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

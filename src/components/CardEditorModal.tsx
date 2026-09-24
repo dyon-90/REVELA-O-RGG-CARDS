@@ -155,14 +155,46 @@ export const CardEditorModal: React.FC<CardEditorModalProps> = ({
         return;
       }
 
-      // If server upload failed, report the actual reason
-      const errMsg = serverResult.error || 'O servidor não aceitou o arquivo.';
+      // If server upload failed, automatically save locally to IndexedDB so the user doesn't lose the video
+      const errMsg = serverResult.error || 'O servidor web não aceitou a gravação direta.';
+      
+      // Auto-fallback to local IndexedDB
+      try {
+        const blobKey = `video_${Date.now()}_${file.name}`;
+        await saveVideoBlob(blobKey, file);
+        const objectUrl = URL.createObjectURL(file);
+        setVideoUrl(objectUrl);
+        setUploadFileName(file.name);
+        setIsServerStored(false);
+        setIsUploading(false);
+        setUploadProgress(null);
+        setUploadSuccessMsg(`Vídeo salvo localmente no navegador! (${errMsg} No executável Windows .EXE, os vídeos são salvos permanentemente no disco em /uploads).`);
+        return;
+      } catch (localErr) {
+        console.error('Local fallback failed', localErr);
+      }
+
       setUploadError(`Falha ao gravar no servidor: ${errMsg}`);
       setFailedFile(file);
       setIsUploading(false);
       setUploadProgress(null);
     } catch (err: any) {
       console.error(err);
+      // Auto-fallback on network error as well
+      try {
+        const blobKey = `video_${Date.now()}_${file.name}`;
+        await saveVideoBlob(blobKey, file);
+        const objectUrl = URL.createObjectURL(file);
+        setVideoUrl(objectUrl);
+        setUploadFileName(file.name);
+        setIsServerStored(false);
+        setIsUploading(false);
+        setUploadProgress(null);
+        setUploadSuccessMsg('Vídeo salvo na memória local! Para gravação física no disco rígido, utilize o Executável Windows (.EXE).');
+        return;
+      } catch {
+        // Fallback error
+      }
       setUploadError(`Erro de conexão com o servidor: ${err?.message || 'Falha de rede'}.`);
       setFailedFile(file);
       setIsUploading(false);

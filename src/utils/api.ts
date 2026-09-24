@@ -90,6 +90,15 @@ export async function uploadVideoToServer(
     });
 
     const handleSuccess = (responseText: string) => {
+      const trimmed = responseText.trim();
+      if (trimmed.startsWith('<')) {
+        // Returned HTML (e.g. proxy error, Cloud Run 413, or redirect)
+        resolve({
+          success: false,
+          error: 'O ambiente interceptou a requisição com resposta HTML (limite de proxy na nuvem).',
+        });
+        return;
+      }
       try {
         const response = JSON.parse(responseText);
         if (response.success && response.videoUrl) {
@@ -107,7 +116,7 @@ export async function uploadVideoToServer(
       } catch {
         resolve({
           success: false,
-          error: 'Servidor retornou uma resposta inesperada. Verifique a rota de upload.',
+          error: 'O servidor retornou uma resposta não-JSON. Arquivo pode exceder limites de rede.',
         });
       }
     };

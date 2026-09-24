@@ -1,0 +1,36 @@
+========================================================================
+    REVELAÇÃO RGG CARDS - COMO USAR / GERAR O EXECUTÁVEL NO WINDOWS (.EXE)
+========================================================================
+
+Você tem duas maneiras muito simples de rodar ou gerar o executável no seu PC Windows:
+
+------------------------------------------------------------------------
+MÉTODO 1: GERAR O EXECUTÁVEL STANDALONE (.EXE) COM 1 CLIQUE
+------------------------------------------------------------------------
+1. Certifique-se de que o Node.js está instalado no seu PC (https://nodejs.org/).
+2. Dê um duplo-clique no arquivo:
+   👉 "CRIAR_EXECUTAVEL_EXE.bat"
+3. O script fará tudo de forma 100% automática:
+   - Instala o Electron e o empacotador de Windows.
+   - Compila os arquivos do baralho e sistema de iluminação.
+   - Cria o executável dentro da pasta "dist_electron":
+     • RevelacaoRGG_Cards_Portable.exe (executável portátil, pronto para usar ou levar em pendrive)
+     • RevelacaoRGG_Cards_Setup.exe (instalador tradicional)
+4. Ao final, a pasta com o seu arquivo .EXE abrirá automaticamente na tela!
+
+------------------------------------------------------------------------
+MÉTODO 2: EXECUTAR DIRETAMENTE NO WINDOWS (SEM PRECISAR INSTALAR NADA)
+------------------------------------------------------------------------
+1. Dê um duplo-clique no arquivo:
+   👉 "INICIAR_NO_WINDOWS.bat"
+2. O sistema inicializa o servidor de vídeos local e abre a aplicação diretamente no seu navegador.
+3. Todos os vídeos que você enviar ficarão salvos no seu próprio PC dentro da pasta:
+   📁 public\uploads\
+
+------------------------------------------------------------------------
+COMO OS VÍDEOS FICAM SALVOS NO SEU PC:
+------------------------------------------------------------------------
+- Quando você grava um vídeo em qualquer carta, o arquivo de vídeo (.mp4, .webm, .mov)
+  é armazenado permanentemente no disco rígido do seu computador.
+- O banco de dados local (cards_database.json) mantém as posições, naipes,
+  textos e efeitos de luz salvos mesmo se você fechar o aplicativo ou reiniciar o PC.

@@ -8,10 +8,11 @@ import { LightConnectionWeb } from './components/LightConnectionWeb';
 import { CardEditorModal } from './components/CardEditorModal';
 import { VideoCinemaModal } from './components/VideoCinemaModal';
 import { HostingerStorageModal } from './components/HostingerStorageModal';
+import { WindowsExecutableModal } from './components/WindowsExecutableModal';
 import { soundEngine } from './utils/audio';
 import { getVideoBlob } from './utils/db';
 import { fetchCardsFromServer, syncCardsToServer } from './utils/api';
-import { Sparkles, Lightbulb, Film, HelpCircle, Plus, Play, Square, Database, Server } from 'lucide-react';
+import { Sparkles, Lightbulb, Film, HelpCircle, Plus, Play, Square, Database, Server, Monitor } from 'lucide-react';
 
 const SESSION_STORAGE_KEY = 'baralho_lit_cards_state';
 const LOCAL_STORAGE_CARDS_KEY = 'baralho_custom_deck_cards';
@@ -40,6 +41,7 @@ export default function App() {
 
   const [isServerSynced, setIsServerSynced] = useState<boolean>(false);
   const [isStorageModalOpen, setIsStorageModalOpen] = useState<boolean>(false);
+  const [isWindowsModalOpen, setIsWindowsModalOpen] = useState<boolean>(false);
 
   // Sync with Hostinger backend database on launch
   useEffect(() => {
@@ -400,6 +402,15 @@ export default function App() {
             </button>
             <span aria-hidden="true">·</span>
             <button
+              onClick={() => setIsWindowsModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-950/80 border border-sky-500/50 hover:border-sky-400 text-sky-300 hover:text-white text-[11px] transition-all cursor-pointer shadow-sm hover:bg-sky-900"
+              title="Como gerar e executar como aplicativo Windows (.EXE)"
+            >
+              <Monitor className="w-3.5 h-3.5 text-sky-400" />
+              <span className="font-semibold">Executável Windows (.EXE)</span>
+            </button>
+            <span aria-hidden="true">·</span>
+            <button
               onClick={handleToggleAutoReveal}
               className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-md transition-all font-medium ${
                 isAutoRevealing
@@ -534,6 +545,12 @@ export default function App() {
       <HostingerStorageModal
         isOpen={isStorageModalOpen}
         onClose={() => setIsStorageModalOpen(false)}
+      />
+
+      {/* Windows Executable (.EXE) Modal */}
+      <WindowsExecutableModal
+        isOpen={isWindowsModalOpen}
+        onClose={() => setIsWindowsModalOpen(false)}
       />
     </div>
   );

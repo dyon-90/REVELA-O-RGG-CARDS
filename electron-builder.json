@@ -1,0 +1,38 @@
+{
+  "appId": "com.revelacaorgg.cards",
+  "productName": "Revelacao RGG Cards",
+  "copyright": "Copyright © 2026 Revelação RGG Cards",
+  "directories": {
+    "output": "dist_electron"
+  },
+  "files": [
+    "dist/**/*",
+    "electron/**/*",
+    "package.json",
+    "node_modules/express/**/*",
+    "node_modules/multer/**/*"
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      },
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "artifactName": "${productName}_v${version}_Windows_${target}.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Revelação RGG Cards"
+  },
+  "portable": {
+    "artifactName": "RevelacaoRGG_Cards_Portable.exe"
+  }
+}
